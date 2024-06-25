@@ -1,0 +1,1026 @@
+{% extends "soft17/navigation.html" %}
+{% load static %}
+
+{% block content %} 
+<script>
+    // Call as soon as document has loaded to display list  
+    /** @note   :   When Page is loaded make a call to check current state */
+    window.onload = loadGameState;
+    window.setInterval(loadGameState, 2000);
+    //window.setInterval(loadGameCards, 5000);
+
+    //@note: hide action bar for testing
+    //$("#id_game_action_play").hide()
+
+
+
+
+
+    /*
+     *  @brief  :   Function to Check the current state of the game 
+     *                  -> Send an AJAX call to views.py and call 
+     *                     single_player_game_state()
+     *                  -> Send back JSON of all current gamer info 
+     *                      (i.e. player hand, dealer hand, chips etc.)
+     *                  -> This function should be called when window is loaded
+     */
+    /***************************************************************************************************************************** */
+    /* --- ERROR HANDLING & SAFETY --- */
+    /***************************************************************************************************************************** */
+    function sanitize(s) {
+        // Be sure to replace ampersand first
+        return s.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+    }
+
+    function getCSRFToken() {
+        let cookies = document.cookie.split(";")
+            for (let i = 0; i < cookies.length; i++) {
+                let c = cookies[i].trim()
+                if (c.startsWith("csrftoken=")) {
+                    return c.substring("csrftoken=".length, c.length)
+                }
+            }
+        return "unknown";
+    }
+
+
+    function errorGameState(xhr) {
+        console.log("error")
+        console.log(xhr)
+        if (xhr.status === 200) {
+            let response = JSON.parse(xhr.responseText)
+            updateGameCards(response)
+            return
+        }
+
+        if (xhr.status === 0) {
+            alert("Cannot connect to server")
+            return
+        }
+
+        if (!xhr.getResponseHeader('content-type') === 'application/json') {
+            alert("Received status=" + xhr.status)
+            return
+        }
+
+        let response = JSON.parse(xhr.responseText)
+        if (response.hasOwnProperty('error')) {
+            alert(response.error)
+            return
+        }
+        if (response.hasOwnProperty('game_state')) {
+            updateGameStateInterface(response);
+        }
+    }
+
+    /***************************************************************************************************************************** */
+    /* --- GAME LOGIC & STATE UPDATES --- */
+    /***************************************************************************************************************************** */
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- AJAX FUNCTIONS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function loadGameState() {
+        $.ajax({
+            url: "/soft17/single-curr-state",
+            dataType: "json",
+            success: updateGameState,
+            error: errorGameState
+        });
+    }
+    
+    function returnNextState(statedic) {
+        var x = 0;
+    }
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CURRENT STATE LOGIC -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function updateGameState(state_dic) {
+
+        /** Update Bet & Wallet Game Stats */
+        updateWallet(state_dic["player_info"][0]["wallet"])
+        updatePot(state_dic["dealer_info"[0]["pot"]])
+
+        /** Make Other UI Specific updates */
+        updateGameStateInterface(state_dic)
+
+        /** Updates Cards Currently on Game Screen */
+        updatePlayerCards(state_dic)
+        updateDealerCards(state_dic)  
+    }
+
+
+    function updateGameStateInterface(state_dic) {
+        current_game_state = state_dic['game_state']
+        
+        switch (current_game_state) {
+            case "0": // reset game
+                document.getElementById("id_game_action_play")?.remove()
+                /* -- ACTION BAR -- */
+                    /* // Hide & Disable Betting Controls
+                     $("#id_game_bet_play").css('visibility', 'hidden')
+                     // Hide & Disable Game Controls
+                     $("#id_game_action_play").css('visibility', 'hidden')
+                     // Hide Game State Banner
+                     $("#id_game_state_banner").css('visibility', 'hidden')*/
+                    hideHandValues()
+                    break;
+            case "1": // start game ->
+                
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_action_play")?.remove()
+
+                    // Hide & Disable Betting Controls
+                break;
+            case "2": // place bets -> do nothing here as the player will hit buttons on UI to trigger placing bets actions
+                /* -- GAME DATA -- */
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_action_play")?.remove()
+                if (document.getElementById("id_game_bet_play") == null) {
+                    addBetAction()
+                    checkChipDisable()
+                }
+
+                break;
+            case "3": // deal players
+                /* -- GAME DATA -- */
+                document.getElementById('id_dealer_score_div').style.visibility = "hidden"
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                /* -- DELAY-- */
+
+                break;
+            case "4": // deal dealer
+                /* -- GAME DATA -- */
+                document.getElementById('id_dealer_score_div').style.visibility = "hidden"
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                break;
+            case "5": // player's turn -> check if player busted
+                /* -- GAME DATA -- */
+                document.getElementById('id_dealer_score_div').style.visibility = "hidden"
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                break;
+            case "6": // player's score -> check if player busted
+                /* -- GAME DATA -- */
+                document.getElementById('id_dealer_score_div').style.visibility = "hidden"
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                break;
+            case "7": // dealer's turn -> dispatch ajax to deal for dealer
+                /* -- GAME DATA -- */
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                        addGameAction()
+                }
+                update_game_to_next_state("dealer_turn")
+
+            break;
+            case "8": // dealer's turn -> dispatch ajax to deal for dealer
+                /* -- GAME DATA -- */
+                showHandValue()
+                if (document.getElementById('id_player_chip_div').firstElementChild == null) {
+                    loadBetUI()
+                }
+                /* -- ACTION BAR -- */
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                update_game_to_next_state("dealer_turn")
+
+            case "9":
+                document.getElementById("id_game_bet_play")?.remove()
+                if (document.getElementById("id_game_action_play") == null) {
+                    addGameAction()
+                }
+                game_result = state_dic['result']
+                // Get the div element with id "game_result"
+                var gameResultDiv = document.getElementById("game_result");
+                gameResultDiv.innerHTML = game_result;
+
+                // Get the modal element
+                var modal = document.getElementById('newGame');
+                // Open the modal
+                var modalInstance = new bootstrap.Modal(modal, {});
+                $('#newGame').on('hidden.bs.modal', function (e) {
+                    if (e.target === this) {
+                        location.reload();
+                    }
+                })
+                modalInstance.show();
+                break;
+        }
+    }
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- NEXT STATE LOGIC -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /* AJAX Call to Update State */
+    function update_game_to_next_state(game_action) {
+        // alert("calling ajax to update to next state")
+        let num_chips_5 = document.getElementById("id_num_chips_5")
+        let num_chips_10 = document.getElementById("id_num_chips_10")
+        let num_chips_25 = document.getElementById("id_num_chips_25")
+        let num_chips_50 = document.getElementById("id_num_chips_50")
+        let num_chips_100 = document.getElementById("id_num_chips_100")
+        let bet_order = document.getElementById("id_bet_list_hidden").value
+        bet_list = [num_chips_5?.value, num_chips_10?.value, num_chips_25?.value, num_chips_50?.value, num_chips_100?.value]
+
+        // Post JSON containing details of Game Action
+        $.ajax({
+            url: "/soft17/single-next-state",
+            type: "POST",
+            data: `bet_data=${bet_list}&bet_order=${bet_order}&game_action=${game_action}&csrfmiddlewaretoken=${getCSRFToken()}`,
+            dataType: "json",
+            success: returnNextState,
+            error: errorGameState
+        });
+    }
+
+
+
+
+
+
+    /***************************************************************************************************************************** */
+    /* --- CARD & HAND FUNCTIONS--- */
+    /***************************************************************************************************************************** */
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- GENERAL LOGIC -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function updateDealerHand(newValue) {
+            document.getElementById("id_dealer_score").value = String(Number(newValue))
+    }
+    function updateDealerHand(newValue) {
+            document.getElementById("id_player_score").value = String(Number(newValue))
+    }
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CREATING / UPDATING / REMOVING ELEMENTS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function updatePlayerCards(state_dic) {
+        /** Updates Cards Currently on Game Screen */
+        let player_group_div = $("#id_player_card_group_div")
+
+        /** Update for Player's Hand */
+        let player_info = state_dic["player_info"][0]
+        let player_cards = player_info["cards"]
+        let hand_value = player_info["hand_value"]
+        let player_hand_value_div = $("#id_player_score")
+        let last_card_id = "id_player_card_" + String(player_cards[player_cards.length - 1]?.id)
+        $("#id_double_button").prop("disabled", false);
+
+        disable_double_button(player_cards)
+
+        player_cards.forEach(player_card => {
+            var card_idx = player_cards.indexOf(player_card)
+            var is_top_card = ("id_player_card_" + String(player_card.id)) == last_card_id
+            // Check if card not already loaded
+            if (document.getElementById(`id_player_card_${player_card.id}`) == null) {
+                var card_element = createGameCard(player_card, card_idx, is_top_card, state_dic['game_state'], state_dic["last_action"], "player")
+                player_group_div.append(card_element)
+
+                //flip_card(card_element.firstChild)
+                
+            }
+        })
+        // update the player's hand value
+        player_hand_value_div.text(hand_value);
+    }
+
+
+    function updateDealerCards(state_dic) {
+        /** Updates Cards Currently on Game Screen */
+        let dealer_group_div = $("#id_dealer_card_group_div")
+
+        if(state_dic['game_state'] == "6" || state_dic['game_state'] == "7"){
+            dealer_group_div.empty()
+        }
+        
+        /** Update for Dealer's Hand */
+        let dealer_info = state_dic["dealer_info"][0]
+        let dealer_cards = dealer_info["cards"]
+        let hand_value = dealer_info["hand_value"]
+        let dealer_hand_value_div = $("#id_dealer_score")
+        let last_card_id = "id_player_card_"+ String(dealer_cards[dealer_cards.length - 1]?.id)
+    
+        dealer_cards.forEach(dealer_card => {
+            var card_idx = dealer_cards.indexOf(dealer_card)
+            var is_top_card = ("id_player_card_" + String(dealer_card.id)) == last_card_id
+      
+            if (document.getElementById(`id_player_card_${dealer_card.id}`) == null) { // Check if card not already loaded
+                var card_element = createGameCard(dealer_card, card_idx, is_top_card, state_dic['game_state'], state_dic["last_action"], "dealer")
+                dealer_group_div.append(card_element) 
+            }
+            // Flip over top card at start of dealer's turn 
+            if (card_idx == 1 && state_dic['game_state'] == 7) {
+                flip_card(card_element.firstChild)
+                setTimeout(function () {
+                    // Show Value 
+                    document.getElementById('id_dealer_score_div').style.visibility = "visible" 
+                }, 500)
+            }
+        })
+        dealer_hand_value_div.text(hand_value);
+    }
+
+
+    // card type = dealer or player
+    function createGameCard(card, card_idx, is_top_card, state, last_action, cardType) {
+        let id_string = String(card.id)
+
+        /** Create card Div - Outer & Inner Containers */
+        let card_div = document.createElement("div");
+        card_div.style.opacity = 0
+        card_div.id = "id_player_card_" + id_string
+        let card_div_inner = document.createElement("div");
+        card_div_inner.className = "playing-card-inner card";
+        card_div_inner.onclick = function () {}
+
+        /* Add Animations Depending on State */
+        if (cardType == "player") {
+            if ((state == 3 && is_top_card) || (state == 5 && is_top_card && (card_idx != 1)) || (state == 6 && is_top_card)) {
+                // Antimate Deal for Top Card 
+                card_div.className = "playing-card-outer playing-card-outer--playing-card-inner slide-left-animation";
+                card_div.style.opacity = 0
+            } else {
+                // Load other cards regularly
+                card_div.className = "playing-card-outer playing-card-outer--playing-card-inner";
+                card_div.style.opacity = 1
+                flip_card(card_div_inner)
+            }
+        } else if (cardType == "dealer") {
+            if ((state == 4) && is_top_card) {
+                // Case for Dealer Deal State (2 cards - 1 up, 1 down)
+                card_div.className = "playing-card-outer playing-card-outer--playing-card-inner slide-left-animation";
+                card_div.style.opacity = 0
+            } else if (state == 7){
+                if (is_top_card && (card_idx != 1)) {
+                    // Antimate Deal for Top Card 
+                    card_div.className = "playing-card-outer playing-card-outer--playing-card-inner slide-left-animation";
+                    card_div.style.opacity = 0
+                } else {
+                    card_div.className = "playing-card-outer playing-card-outer--playing-card-inner";
+                    card_div.style.opacity = 1
+                    // This card needs to be flipped manually at start of dealer's turn
+                    if (card_idx != 1) {
+                        flip_card(card_div_inner)
+                    }
+                }  
+            } else {
+                card_div.className = "playing-card-outer playing-card-outer--playing-card-inner";
+                card_div.style.opacity = 1
+                if (is_top_card != true) {
+                    flip_card(card_div_inner)
+                }
+            }
+        }
+
+        /* Animation Listeners */
+        card_div.addEventListener("animationend", () => {
+            card_div.style.opacity = 1
+        })
+        card_div.addEventListener("animationend", () => {
+            // Remove Deal animation --> only deal once
+            toggle_slide_left(card_div)
+            // Check if dealer's top card
+            if (cardType == "player" || card_idx != 1) {
+                flip_card(card_div_inner)
+                // If player's first card show card values
+                if (cardType == "player") {
+                    document.getElementById('id_player_score_div').style.visibility = "visible"
+                }
+            }
+            // Add a Short Delay then Call function to update State
+            setTimeout(function () {
+               update_game_to_next_state("finished_dealing") 
+            }, 500)
+        })
+
+        /** Front Card Div */
+        let front_card = document.createElement("div")
+        front_card.className = "playing-card-face playing-card-face--front card"
+
+        /** Add Playing card image */
+        let card_img = document.createElement("img");
+        card_img.className = "playing-card-img"
+        card_img.src = "/static/Assets/cards/card_back.svg"
+
+        /** Back Card Div */
+        let back_card = document.createElement("div")
+        back_card.className = "playing-card-face playing-card-face--back card"
+
+        /** Back card Image */
+        let back_card_img = document.createElement("img");
+        back_card_img.className = " playing-card-img"
+        back_card_img.src = "/static/" + String(card.url)
+
+
+        /** Append DOM items */
+        front_card.appendChild(card_img)
+        card_div_inner.appendChild(front_card)
+        back_card.appendChild(back_card_img)
+        card_div_inner.appendChild(back_card)
+        card_div.appendChild(card_div_inner)
+        return card_div
+    }
+    
+
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- UI CHANGES & ANIMATIONS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function flip_card(card) {
+        card.classList.toggle('is-flipped')
+    }
+
+    function toggle_slide_left(card) {
+        card.classList.toggle('slide-left-animation')
+    }
+
+    function showHandValue() {
+        document.getElementById('id_dealer_score_div').style.visibility = "visible"
+        document.getElementById('id_player_score_div').style.visibility = "visible"
+
+    }
+
+    function hideHandValues() {
+        document.getElementById('id_dealer_score_div').style.visibility = "hidden"
+        document.getElementById('id_player_score_div').style.visibility = "hidden"
+    }
+
+
+
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CLEAR & RESET -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+
+
+
+
+
+    /***************************************************************************************************************************** */
+    /* --- BETTING & CHIP FUNCTIONS--- */
+    /***************************************************************************************************************************** */
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- GENERAL LOGIC -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    // Disable Chip Values if over wallet
+    function checkChipDisable() {
+        // Get Data From Hiddens
+        let wallet_hidden = document.getElementById("id_wallet_hidden")
+        let bet_value = document.getElementById("id_bet_value_hidden")
+        let num_chips_5 = document.getElementById("id_num_chips_5")
+        let num_chips_10 = document.getElementById("id_num_chips_10")
+        let num_chips_25 = document.getElementById("id_num_chips_25")
+        let num_chips_50 = document.getElementById("id_num_chips_50")
+        let num_chips_100 = document.getElementById("id_num_chips_100")
+        let chip_vals = [5,10,25,50,100]
+
+        // Make Restrictions to UI Based on Wallet
+        // Chips 
+        for (let i = 0; i < 5; i++) {
+            if (Number(bet_value.value) + chip_vals[i] > Number(wallet_hidden.value)) {
+                $("#id_chip_" + String(chip_vals[i])).prop('disabled', true)
+            } else {
+                $("#id_chip_" + String(chip_vals[i])).prop('disabled', false)
+            }
+        }
+    }
+
+
+    function submitBet() {
+        update_game_to_next_state("submit_bet")
+    }
+
+    function doubleBet() {
+        // Get List of Current Chips in Bet from Hidden field
+        let bet_list_hidden = document.getElementById("id_bet_list_hidden").value.slice(1)
+        let chip_vals = (bet_list_hidden == "") ? [] : bet_list_hidden.split(",")
+
+        // Double Values in Current Bet 
+        for (let i = 0; i<chip_vals.length; i++) {
+            addChipToBet(chip_vals[i])
+        }
+    }
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CREATING / UPDATING / REMOVING ELEMENTS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function addChipUI(chipValue) {
+        let chip_div = document.getElementById('id_player_chip_div')
+
+        // Create New Chip Element
+        let new_chip = document.createElement('div')
+        new_chip.className = 'chip chip-' + String(chipValue)
+
+        // Append
+        chip_div.append(new_chip)
+    }
+    
+    function addChipToBet(chipValue) {
+        // Get Hidden Field 
+        let chip_hidden_id = "id_num_chips_" + String(chipValue)
+        let chip_hidden = document.getElementById(chip_hidden_id)
+        // Update Number of Chips 
+        let bet_list_hidden = document.getElementById("id_bet_list_hidden")
+        chip_hidden.value =  String(Number(chip_hidden.value) + 1)
+        // Update Chip order -> when page refreshed
+        bet_list_hidden.value = String(bet_list_hidden.value) + "," + String(chipValue)
+
+        // UI Update or Animation
+        addChipUI(chipValue)
+
+        // Call Function to Update Bet  
+        updatePlayerBet()       
+    }
+    
+    
+    function updatePlayerBet() {
+        // Get Data From Hiddens
+        let wallet_hidden = document.getElementById("id_wallet_hidden")
+        let bet_value = document.getElementById("id_bet_value_hidden")
+        let num_chips_5 = document.getElementById("id_num_chips_5")
+        let num_chips_10 = document.getElementById("id_num_chips_10")
+        let num_chips_25 = document.getElementById("id_num_chips_25")
+        let num_chips_50 = document.getElementById("id_num_chips_50")
+        let num_chips_100 = document.getElementById("id_num_chips_100")
+        var chip_vals = [5,10,25,50,100]
+
+        // Update Value of Bet
+        bet_value.value = String(5*Number(num_chips_5.value) + 10*Number(num_chips_10.value) + 25*Number(num_chips_25.value) + 50*Number(num_chips_50.value) + 100* Number(num_chips_100.value))
+        $("#id_bet_value_input").val(bet_value.value)
+        
+        // Make Restrictions to UI Based on Wallet
+        // Chips 
+        checkChipDisable()
+    }
+
+
+    function loadBetUI() {
+        // get values from hiddens 
+        let num_chips_5 = $("#id_num_chips_5").val()
+        let num_chips_10 = $("#id_num_chips_10").val()
+        let num_chips_25 = $("#id_num_chips_25").val()
+        let num_chips_50 = $("#id_num_chips_50").val()
+        let num_chips_100 = $("#id_num_chips_100").val()
+        let bet_list_hidden = document.getElementById("id_bet_list_hidden").value.slice(1)
+
+        // Get order data from hidden --> stored as a string convert into array
+        let chip_vals = (bet_list_hidden == "") ? [] : bet_list_hidden.split(",")
+
+        // Generate Chips
+        for (let i = 0; i < chip_vals.length; i++) {
+            addChipUI(chip_vals[i])
+        }
+    }
+    function updateWallet(wallet_value) {
+        // Update Hidden
+        $("#id_wallet_hidden").val(String(wallet_value))
+        // Update Display
+        $("#id_wallet_text").val(String(wallet_value))
+    }
+
+    function updatePot(pot_value) {
+           $("#id_pot_text").val(String(pot_value))
+    }
+
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- UI CHANGES & ANIMATIONS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CLEAR & RESET -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function clearChipUI() {
+        $('#id_player_chip_div').empty()
+        // Ensure Buttons are enabled
+        $("#id_chip_5").prop('disabled', false)
+        $("#id_chip_10").prop('disabled', false)
+        $("#id_chip_25").prop('disabled', false)
+        $("#id_chip_50").prop('disabled', false)
+        $("#id_chip_100").prop('disabled', false)
+    }
+
+
+    function clearBet() {
+        // Clear Hiddens
+        $("#id_num_chips_5").val(0)
+        $("#id_num_chips_10").val(0)
+        $("#id_num_chips_25").val(0)
+        $("#id_num_chips_50").val(0)
+        $("#id_num_chips_100").val(0)
+        $("#id_bet_value_hidden").val(0)
+        
+
+        // Clear UI
+        $("#id_bet_value_input").val("0")
+        $("#id_bet_list_hidden").val("")
+
+        clearChipUI()
+        checkChipDisable()
+    }
+
+
+
+    /***************************************************************************************************************************** */
+    /* --- UI / UX FUNCTIONS --- */
+    /***************************************************************************************************************************** */
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- CUSTOM BUTTONS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function disable_double_button(player_cards){
+        if(player_cards.length > 2){
+            $("#id_double_button").prop("disabled", true);
+        }
+        const wallet_balance = document.getElementById("id_wallet_hidden")
+        const current_bet_value = document.getElementById("id_bet_value_hidden")
+        if(Number(current_bet_value.value)*2 > Number(wallet_balance.value)){
+            $("#id_double_button").prop("disabled", true);
+        }
+    }
+
+
+
+
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    /** --- ACTION BAR / GAME CONTROLS -- **/
+    /* --------------------------------------------------------------------------------------------------------------------------- */
+    function addGameAction() {
+        /* Create Outer Div */
+        let outer_div = document.createElement("div")
+        outer_div.id = "id_game_action_play"
+        outer_div.className = "d-flex flex-row justify-content-between align-items-stretch g-0 action-div"
+
+        /* Create Stand Button */
+        // Div
+        let stand_div = document.createElement("div")
+        stand_div.id = "id_stand_div"
+        stand_div.className = "d-flex flex-fill order-1 justify-content-center align-items-center"
+        // Button
+        let stand_button = document.createElement("button")
+        stand_button.id = "id_stand_button"
+        stand_button.className = "btn btn-outline-light game-action-button d-flex flex-col align-items-center justify-content-left py-2 px-4 mx-4 text-left"
+        stand_button.onclick = function () {
+            $("#id_double_button").prop("disabled", true);
+            $("#id_stand_button").prop("disabled", true);
+            $("#id_hit_button").prop("disabled", true);
+            update_game_to_next_state("player_stand")
+        }
+    
+        let stand_icon = document.createElement("img")
+        stand_icon.src = "/static/Assets/icons/stand_icon.png"
+        stand_icon.className = "px-1 action-button-icon"
+        let stand_text_span = document.createElement("span")
+        stand_text_span.innerHTML = "STAND"
+        stand_text_span.className = "px-2 action-button-text text-left"
+        stand_button.appendChild(stand_icon)
+        stand_button.appendChild(stand_text_span)
+        // Append
+        stand_div.appendChild(stand_button)
+
+        /* Create Hit Button */
+        // Div
+        let hit_div = document.createElement("div")
+        hit_div.id = "id_hit_div"
+        hit_div.className = "d-flex flex-fill order-1 justify-content-center align-items-center"
+        // Button
+        let hit_button = document.createElement("button")
+        hit_button.id = "id_hit_button"
+        hit_button.className = "btn btn-outline-light game-action-button d-flex flex-col align-items-center justify-content-left py-2 px-4 mx-4 text-left"
+        hit_button.onclick = function () { update_game_to_next_state("player_hit") }
+
+        let hit_icon = document.createElement("img")
+        hit_icon.src = "/static/Assets/icons/hit_icon.png"
+        hit_icon.className = "px-1 action-button-icon"
+        //double_icon_span.appendChild(double_icon)
+        let hit_text_span = document.createElement("span")
+        hit_text_span.innerHTML = "HIT"
+        hit_text_span.className = "px-2 action-button-text text-left"
+        hit_button.appendChild(hit_icon)
+        hit_button.appendChild(hit_text_span)
+        // Append
+        hit_div.appendChild(hit_button)
+
+        /* Create Double Button */
+        // Div
+        let double_div = document.createElement("div")
+        double_div.id = "id_double_div"
+        double_div.className = "d-flex flex-fill order-1 justify-content-center align-items-center"
+        // Button
+        let double_button = document.createElement("button")
+        double_button.id = "id_double_button"
+        double_button.className = "btn btn-outline-light game-action-button d-flex flex-col align-items-center justify-content-left px-4 py-2 mx-4 text-left"
+        double_button.onclick = function () {
+            const wallet_balance = document.getElementById("id_wallet_hidden")
+            const current_bet_value = document.getElementById("id_bet_value_hidden")
+            if (Number(current_bet_value.value) * 2 < Number(wallet_balance.value)) {
+                doubleBet()
+                update_game_to_next_state("player_double")
+            } else {
+                alert("Insufficient wallet balance to double down!")
+            }
+
+        }
+        //let double_icon_span = document.createElement("span")
+        let double_icon = document.createElement("img")
+        double_icon.src = "/static/Assets/icons/double_icon.png"
+        double_icon.className = "px-1 action-button-icon"
+        //double_icon_span.appendChild(double_icon)
+        let double_text_span = document.createElement("span")
+        double_text_span.innerHTML = "DOUBLE"
+        double_text_span.className = "px-2 action-button-text text-left"
+        double_button.appendChild(double_icon)
+        double_button.appendChild(double_text_span)
+        // Append
+        double_div.appendChild(double_button)
+        
+
+        /* Append All to Document */
+        outer_div.appendChild(stand_div)
+        outer_div.appendChild(hit_div)
+        outer_div.appendChild(double_div)
+
+        let game_action_bar = document.getElementById("id_game_action_bar")
+        game_action_bar.appendChild(outer_div)
+    }
+
+
+
+        /** Dynamically Add / Show Betting Controls Bar */
+        function addBetAction() {
+            /* Create Outer Div */
+            let outer_div = document.createElement("div")
+            outer_div.id = "id_game_bet_play"
+            outer_div.className = "d-flex flex-row justify-content-between align-items-stretch g-0 bet-div"
+
+            /* Create Chip Div */
+            // Div
+            let chip_div = document.createElement("div")
+            chip_div.id = "id_chip_div"
+            chip_div.className = "d-flex flex-fill flex-row order-1 justify-content-around align-items-center py-2 chip-div"
+            // Chip Buttons
+            let chip_5 = document.createElement("button")
+            chip_5.id = "id_chip_5"
+            chip_5.className = "btn Rounded-circle chip-btn mx-2"
+            chip_5.onclick = function () { addChipToBet(5) }
+            let chip_10 = document.createElement("button")
+            chip_10.id = "id_chip_10"
+            chip_10.className = "btn Rounded-circle chip-btn mx-2"
+            chip_10.onclick = function () { addChipToBet(10) }
+            let chip_25 = document.createElement("button")
+            chip_25.id = "id_chip_25"
+            chip_25.className = "btn Rounded-circle chip-btn mx-2"
+            chip_25.onclick = function () { addChipToBet(25) }
+            let chip_50 = document.createElement("button")
+            chip_50.id = "id_chip_50"
+            chip_50.className = "btn Rounded-circle chip-btn mx-2"
+            chip_50.onclick = function () { addChipToBet(50) }
+            let chip_100 = document.createElement("button")
+            chip_100.id = "id_chip_100"
+            chip_100.className = "btn Rounded-circle chip-btn mx-2"
+            chip_100.onclick = function () { addChipToBet(100) }
+            //Append
+            chip_div.appendChild(chip_5)
+            chip_div.appendChild(chip_10)
+            chip_div.appendChild(chip_25)
+            chip_div.appendChild(chip_50)
+            chip_div.appendChild(chip_100)
+
+
+            /* Create Value Div */
+            // Div
+            let value_div = document.createElement("div")
+            value_div.id = "id_bet_value_div"
+            value_div.className = "d-flex flex-fill flex-shrink-1 order-1 justify-content-center align-items-center px-4"
+            let inner_div = document.createElement("div")
+            inner_div.className = "d-flex flex-row bet-value-form text-muted"
+            // Buttons
+
+            // Text
+            let bet_text = document.createElement("input")
+            bet_text.type = "text"
+            bet_text.id = "id_bet_value_input"
+            bet_text.className = "form-control"
+            bet_text.value = ""
+            // Append
+            inner_div.appendChild(bet_text)
+            value_div.appendChild(inner_div)
+
+            /* Create Button Div */
+            // Div
+            let confirm_div = document.createElement("div")
+            confirm_div.id = "id_bet_confirm_div"
+            confirm_div.className = "d-flex flex-fill order-1 justify-content-around align-items-center bet-confirm-div"
+            // Buttons
+            let clear_button = document.createElement("button")
+            clear_button.id = "id_clear_bet_button"
+            clear_button.className = "btn btn-outline bet-button d-flex flex-col align-items-center justify-content-left clear-button px-2"
+            clear_button.onclick = function () { clearBet() }
+            let clear_icon_span = document.createElement("span")
+            let clear_icon = document.createElement("i")
+            clear_icon.className = "fa-solid fa-circle-xmark fa-lg px-1 fa-lg clear-button-icon"
+            clear_icon_span.appendChild(clear_icon)
+            let clear_text_span = document.createElement("span")
+            clear_text_span.innerHTML = "CLEAR"
+            clear_text_span.className = "px-2"
+            clear_button.appendChild(clear_icon_span)
+            clear_button.appendChild(clear_text_span)
+
+            let submit_button = document.createElement("button")
+            submit_button.id = "id_submit_bet_button"
+            submit_button.className = "btn btn-outline bet-button d-flex flex-col align-items-center justify-content-left submit-button px-2"
+            submit_button.onclick = function () { submitBet() }
+            let submit_icon_span = document.createElement("span")
+            let submit_icon = document.createElement("i")
+            submit_icon.className = "fa-solid fa-circle-check fa-lg px-1 submit-button-icon"
+            submit_icon_span.appendChild(submit_icon)
+            let submit_text_span = document.createElement("span")
+            submit_text_span.innerHTML = "SUMBIT"
+            submit_text_span.className = "px-2"
+            submit_button.appendChild(submit_icon_span)
+            submit_button.appendChild(submit_text_span)
+            // Append
+            confirm_div.appendChild(clear_button)
+            confirm_div.appendChild(submit_button)
+
+            /* Append All to Document */
+            outer_div.appendChild(chip_div)
+            outer_div.appendChild(value_div)
+            outer_div.appendChild(confirm_div)
+
+            let game_action_bar = document.getElementById("id_game_action_bar")
+            game_action_bar.appendChild(outer_div)
+        }
+
+</script>
+
+
+
+
+<!-- GAME CONTENT CARD -->
+<div class="card game-card align-items-stretch justify-content-center shadow-lg" id="id_game_content_card">
+    <div class="d-flex flex-column align-items-stretch g-0 flex-fill">
+
+        <!-- GAME PLAY AREA -->
+        <div class="row game-play-div" id="id_game_play_div">
+            <div class="d-flex flex-row justify-content-between align-items-stretch g-0">
+                <!-- Left / Info Col-->
+                <div class="flex-fill order-1 left-game" id="id_left_game_div">
+                    <div class="mx-4 mt-4 py-2 px-3 pot-div" id="id_game_stats">
+                        <span id="id_pot_text"><i class="fa-solid fa-coins pe-2"></i>Pot: ${{room_balance}}</span>
+                    </div>
+                    <div class="mx-4 py-2 px-3 my-2 pot-div" id="id_game_stats">
+                        <span id="id_wallet_text"><i class="fa-solid fa-wallet pe-2"></i>Wallet: ${{wallet_balance}}</span>
+                    </div>
+                </div>
+
+                <!-- Centre / Cards & Chips Col -->
+                <div class="flex-fill order-2 d-flex flex-column align-items-stretch justify-content-center"
+                    id="id_center_game_div">
+                    <!-- Dealer Row -->
+                    <div class="my-5 d-flex flex-row game-card-row justify-content-center" id="id_dealer_card_div">
+                        <!-- Hand Value Div -->
+                        <div class="current-value-div d-flex flex-col" id="id_dealer_score_div">
+                            <div class="current-value-background text-center px-2">
+                                <span class="current-value-text" id="id_dealer_score">0</span>
+                            </div>
+                            <div class="current-value-tail align-self-center">&nbsp;</div>
+                        </div>
+                        <!-- Card Group -->
+                        <div class="d-flex flex-row justify-content-center" id="id_dealer_card_group_div">
+                        </div>
+                    </div>
+                    <!-- Player Row -->
+                    <div class="my-5 d-flex flex-row game-card-row justify-content-center px-0" id="id_player_card_div">
+                        <!-- Hand Value Div -->
+                        <div class="current-value-div d-flex flex-col" id="id_player_score_div">
+                            <div class="current-value-background text-center px-2">
+                                <span class="current-value-text" id="id_player_score">0</span>
+                            </div>
+                            <div class="current-value-tail align-self-center">&nbsp;</div>
+                        </div>
+
+                        <!-- Card Group -->
+                        <div class="d-flex flex-row justify-content-center card-group-div"
+                            id="id_player_card_group_div">
+                            &nbsp;
+                        </div>
+
+                        <!-- Chip Div -->
+                        <div class="current-chip-div mx-5" id="id_player_chip_div">
+                        </div>
+
+                        <!--<div class = "d-flex flex-row justify-content-center" id="id_player_hand_value"></div> -->
+                    </div>
+                </div>
+
+                <!-- Right Col ---->
+                <div class="order-3 flex-fill right-game d-flex flex-column align-items-right justify-content-right" id="id_right_game_div">
+                    <button type="button" class="btn mt-4 mx-4 rules-button"
+                        data-bs-toggle="modal" data-bs-target="#popup">
+                        <i class="fa-regular fa-circle-question fa-3x"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GAME ACTION BAR -->
+        <div class="row game-action-bar align-self-center" id="id_game_action_bar">
+            <!-- Keep Track of User's Bet in Hidden Field -> Reduce DB Accesses-->
+            <input type="hidden" name="user_wallet" id="id_wallet_hidden" value="{{wallet_balance}}">
+            <input type="hidden" name="bet_value" id="id_bet_value_hidden" value="{{bet_value}}">
+            <input type="hidden" name="bet_list" id="id_bet_list_hidden" value="{{bet_order}}">
+            <input type="hidden" name="num_chips_5" id="id_num_chips_5" value="{{num_chips_5}}">
+            <input type="hidden" name="num_chips_10" id="id_num_chips_10" value="{{num_chips_10}}">
+            <input type="hidden" name="num_chips_25" id="id_num_chips_25" value="{{num_chips_25}}">
+            <input type="hidden" name="num_chips_50" id="id_num_chips_50" value="{{num_chips_50}}">
+            <input type="hidden" name="num_chips_100" id="id_num_chips_100" value="{{num_chips_100}}">
+        </div>
+    
+    </div>
+</div>
+
+<!-- Modal for rules page popup -->
+<div class="modal fade" id="popup">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 800px;">
+      <div class="text-white modal-content background-gradient">
+        <div class="modal-header">
+            <h5 class="modal-title" id="popupLabel">Blackjack Rules</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <ul>
+                <li>Blackjack is played with a standard deck of 52 cards.</li>
+                <li>The objective of the game is to beat the dealer's hand without going over 21.</li>
+                <li>Each player is dealt two cards face up, while the dealer receives one card face up and one face down.</li>
+                <li>Cards are valued as follows:
+                    <ul>
+                        <li>Cards 2 through 10 are worth their face value.</li>
+                        <li>Face cards (Jack, Queen, and King) are each worth 10 points.</li>
+                        <li>An Ace can be worth either 1 or 11 points, depending on the player's preference.</li>
+                    </ul>
+                </li>
+                <li>The player may choose to "hit" and receive additional cards to increase their hand's value.</li>
+                <li>If the player's hand exceeds 21, they "bust" and lose the game.</li>
+                <li>The dealer must hit until their hand reaches a value of 17 or higher.</li>
+                <li>If the dealer busts, the player wins the game.</li>
+                <li>If the player's hand is higher than the dealer's and doesn't bust, the player wins.</li>
+                <li>If the dealer's hand is higher than the player's and doesn't bust, the dealer wins.</li>
+                <li>If both hands have the same value, it's a "push" and the player keeps their original bet.</li>
+                <li>Players can also choose to "double down" and double their original bet, but they will only receive one more card.</li>
+                <li>Players can choose to "double down" only when the player has 2 cards</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal for game result popup -->
+<div class="modal fade" id="newGame">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 500px;">
+        <div class="text-white modal-content background-gradient">
+            <div class="modal-body" id="game_result">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

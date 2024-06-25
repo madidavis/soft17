@@ -1,0 +1,38 @@
+{% extends "soft17/login_base.html" %}
+
+
+{% block content-form%}
+
+<!-- Login Form -->
+<form method="post" action="{% url 'login' %}" id="id_login_form">
+    {% if form.non_field_errors %}
+    <div class="alert-error non-field-errors px-0 text-muted background-gradient">
+        {% for error in form.non_field_errors %}
+        <span class="errorlist text-danger">{{error}}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0" id="id_login_username_container">
+        <label class="form-label m-0" for='id_username'> Username:</label>
+        {{form.username}}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_login_password_container">
+        <label class="form-label m-0" for='id_password'> Password:</label>
+        {{form.password}}
+    </div>
+
+
+    <div class="d-flex text-center justify-content-center align-items-center align-self-stretch py-4 px-0"
+        id="id_login_button_container">
+        <button type="submit form_button" class="btn btn-primary py-2" id="id_login_button"> Submit </button>
+    </div>
+
+
+    {% csrf_token %}
+
+</form>
+
+{% endblock %}

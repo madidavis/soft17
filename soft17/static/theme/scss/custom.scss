@@ -1,0 +1,425 @@
+
+@import 'variables';
+@import 'styles';
+@import '../../Bootstrap/scss/bootstrap.scss';
+
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* --- BASE VIEWS --- */
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* BASE BACKGROUND BODY */
+.background-gradient{
+   background: 
+   radial-gradient(
+      circle 80vh at top right,
+      $cool-neutral-7,
+      $primary-12
+      , $dark 90vh, 
+      transparent 500px
+   ),
+      radial-gradient(
+      circle 40vh at bottom left,
+      $primary-12, $dark 50vh, 
+   );
+}
+
+#id_navbar {
+   // SITE NAME
+   #id_site_name {
+      color: $universal-white;
+      font-size: xx-large;
+   }
+
+   // LINKS
+   #id_profile_dropdown {
+      #id_profile_dropdown_toggle {
+         color: $universal-white;
+      }
+   }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* --- REGISTRATION VIEWS --- */
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* --- GAME VIEWS --- */
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+// Playing Card Styling & animations
+// Citation : https://codepen.io/mondal10/pen/WNNEvjV
+    body { font-family: sans-serif; }
+
+
+.bg-light{
+   background-color: rgba(189, 190, 219, 0.3)!important;
+}
+
+#game_result{
+   font-size: 4rem; 
+   text-align: center;
+}
+
+/* CUSTOM CARD COMPONENTS */
+.playing-card-outer {
+  min-width: 12.5vh;
+  min-height: 10vh;
+  height: 100% !important;
+  max-height: 100% !important;
+  perspective: 600px;
+  //animation: append-animate .3s linear;
+  filter: drop-shadow(.5rem .5rem 1rem rgba(0, 0, 0, 0.2));
+  background-color: transparent;
+
+   @for $i from 2 through 100 {
+      &:nth-child(#{$i}n) {
+         margin-left: -#{5vh}; 
+      }
+   } 
+}
+
+// Card animaton
+@keyframes append-animate {
+	from {
+		transform: translateX(300px) translateY(-300px) rotate(135deg);
+      opacity: 1;
+	}
+	to {
+		transform: translateX(0%) translateY(0%) rotate(0deg);
+		opacity: 1;
+	}
+}
+
+.playing-card-outer.slide-left-animation {
+   animation: append-animate 1s linear;
+
+}
+
+.playing-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform-origin: center right;
+  transition: transform 1s;
+  background-color: transparent;
+}
+
+.playing-card-inner.is-flipped {
+   transform: translateX(-100%) rotateY(-180deg);
+}
+
+.playing-card-face {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   backface-visibility: hidden;
+   background-color: transparent;
+}
+
+.playing-card-face--back {
+   transform: rotateY(180deg);
+}
+
+
+
+// GAME PLAY AREA
+.game-card {
+   border-radius: 20px;
+   background: $cool-neutral-8;
+   background-image: url('/static/Assets/background.png');
+   background-repeat: no-repeat;
+   background-size: cover; 
+   background-position: top;
+   min-width: max-content;
+   position: relative;
+
+   // GAME STATES
+   .pot-div {
+      width: max-content;
+      min-width: 10vw;
+      height: max-content;
+      background-color: $cool-neutral-9;
+      border-radius: 2rem;
+      font-family: $lato;
+      color: white;
+   }
+
+   .right-game {
+      max-width: 11vw;
+      position: relative;
+
+      .rules-button {
+         height: max-content;
+         width: max-content;
+         position: absolute;
+         right: 0px;
+         color: white;
+         filter: drop-shadow(.5rem .5rem 1rem rgba(0, 0, 0, 0.2));
+
+         &:hover {
+            transform: scale(1.25);
+         }
+
+      }
+   }
+
+   .left-game {
+       max-width: 11vw;
+   }
+
+   
+   // PLAYING DIV
+   .game-play-div {
+      border-radius: 20px;
+       /* Size Constraints */
+      height: 85%;
+      .game-card-row {
+         /* Size Constraints */
+         height: 25% !important;
+         min-height: 15vh !important;
+
+         // CARDS
+         .playing-card {
+            width: max-content;
+            .playing-card-img {
+               /* Size Constraints */
+               height: 100%;
+               width: auto;
+
+            }
+
+         }
+
+   
+         // CHIPS & BETS
+         .current-chip-div {
+            width: max-content;
+            position: relative;
+            margin-bottom: -1vh;
+
+
+            .chip {
+               background-repeat: no-repeat;
+               background-position: center;
+               position: absolute;  
+               bottom: 0;
+               left: 0px;
+
+               background-image: url('/static/Assets/chips/angle/angle_chip_5.svg');
+               height: 6vh;
+               width: 6vh;
+               //filter: drop-shadow(.5rem .5rem 1rem);
+               
+               // Code to stack chips -> Sass Loop increase y-offset for each child element
+               @for $i from 1 through 100 {
+                  &:nth-child(#{$i}n) {
+                     bottom: #{$i*0.75 - 0.75}vh;
+                     margin-left: #{random()}rem;
+                     filter: drop-shadow(.5rem .5rem 1rem rgba(0, 0, 0, 0.2));
+                  }
+               }
+            }
+
+            .chip-5 {
+               background-image: url('/static/Assets/chips/angle/angle_chip_5.svg');
+
+            }
+            .chip-10 {
+               background-image: url('/static/Assets/chips/angle/angle_chip_10.svg');
+            }
+            .chip-25{
+               background-image: url('/static/Assets/chips/angle/angle_chip_25.svg');
+
+            }
+            .chip-50 {
+               background-image: url('/static/Assets/chips/angle/angle_chip_50.svg');
+            }
+            .chip-100 {
+               background-image: url('/static/Assets/chips/angle/angle_chip_100.svg');
+            }
+         }
+
+         // HAND VALUE
+         .current-value-div {
+            height: max-content;
+            margin-right: -0.4rem;
+            z-index: 4;
+            visibility: hidden;
+
+            .current-value-background {
+              border-radius: 3px;
+              height: max-content;
+              background-color: $cool-neutral-9;
+
+               .current-value-text {
+                  color: $universal-white;
+                  font-size: medium;
+                  font-family: $lato;
+               }
+            }
+            .current-value-tail {
+               width: 0; 
+               height: 0; 
+               border-top: 0.4rem solid transparent;
+               border-bottom: 0.4rem solid transparent;
+               border-left: 0.4rem solid $cool-neutral-9;
+            }
+         }
+      }
+   }
+
+
+   /* ACTION BAR */
+   .game-action-bar {
+      border-radius: 20px;
+      height: 15%;
+      width: 90%;
+      min-width: max-content;
+      background-color: $cool-neutral-9;
+
+
+      // BET ACTIONS 
+      .bet-div{
+         
+         .chip-div {
+            .chip-btn {
+               height: 7vh;
+               width: 7vh;
+               border-radius: 60%;
+               background-image: url('/static/Assets/chips/flat/flat_chip_5.svg');
+               background-repeat: no-repeat;
+               background-position: center;  
+               background-color: $accent1-6;
+               &:hover {
+                  transform: scale(1.25);
+                  box-shadow: 0 5px 15px $accent1-4;
+                  filter: saturate(2)
+               }
+               &:disabled {
+                  filter: saturate(0)
+               }
+            }
+
+            #id_chip_10 {
+               background-image: url('/static/Assets/chips/flat/flat_chip_10.svg');
+               background-color: $red-7;
+               &:hover {
+                  box-shadow: 0 5px 15px $red-5;
+               }
+            }
+
+            #id_chip_25 {
+               background-image: url('/static/Assets/chips/flat/flat_chip_25.svg');
+               background-color: $accent1-11;
+               &:hover {
+                  box-shadow: 0 5px 15px $accent1-4;
+               }
+            }
+
+            #id_chip_50 {
+               background-image: url('/static/Assets/chips/flat/flat_chip_50.svg');
+               background-color: $primary-5;
+               &:hover {
+                  box-shadow: 0 5px 15px $primary-3;
+               }
+            }
+
+            #id_chip_100 {
+               background-image: url('/static/Assets/chips/flat/flat_chip_100.svg');
+               background-color: $primary-9;
+               &:hover {
+                  box-shadow: 0 5px 15px $primary-8;
+               }
+            }
+         }
+         .bet-confirm-div {
+            .bet-button {
+               /* Size Constraints */
+               border-radius: 2rem;
+               width: 40%;
+               min-width: max-content;
+               height: 50%;
+               padding-left: 5%;
+               padding-right: 5%;
+               font-size: large;
+               font-weight: 500;
+               font-family: $lato;
+               filter: drop-shadow(.5rem .5rem 1rem rgba(0, 0, 0, 0.2));
+
+               .bet-button:hover {
+                  cursor: pointer;
+                  transform: scale(1.25);
+                  
+               }
+            }
+            .clear-button {
+               background-color: $red-5;
+               background-repeat: no-repeat;
+               color: $white;
+               
+               &:hover {
+                  box-shadow: 2px 2px 8px rgb(214, 67, 67);;
+                  background-color: rgb(214, 67, 67);
+               }
+               .clear-button-icon{
+                  color:white;
+               }
+            }
+            .submit-button {
+               background-color: #31ce7f,;
+               background-repeat: no-repeat;
+               color: $white;
+               &:hover {
+
+                  box-shadow: 1px 2px 8px #24c64f;
+                  background-color: springgreen;
+               }
+               .submit-button-icon{
+                  color: $white;
+               }
+            }
+         }
+      }
+
+      // GAME ACTIONS
+      .action-div {
+         border-radius: 20px;
+
+         .game-action-button {
+            /* Size Constraints */
+            border-radius: 1rem;
+            width: 40%;
+            min-width: max-content;
+            height: 60%;
+            min-height: max-content;
+            border-radius: 2rem;
+            font-size: large;
+            font-weight: 500;
+            font-family: $lato;
+
+            .action-button-text {
+               min-width: max-content;
+               width: 15vw;
+
+            }
+
+            .action-button-icon {
+               color: white;
+               width: 2.3rem !important;
+               height: auto;
+            }
+            
+
+
+
+
+         }
+      }
+
+
+      // GAME BETS
+   }
+} 
+

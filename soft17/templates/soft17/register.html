@@ -1,0 +1,63 @@
+{% extends "soft17/login_base.html" %}
+
+
+{% block content-form%}
+
+<!-- Register Form -->
+<form method="post" action="{% url 'register' %}" id="id_register_form">
+    {% if form.non_field_errors %}
+    <div class="alert alert-error non-field-errors px-0 text-muted">
+        {% for error in form.non_field_errors %}
+        <span class="errorlist text-danger">{{error}}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0" id="id_register_username_container">
+        <label class="form-label m-0" for='id_username'>Username:</label>
+        {{form.username}}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_register_password_container">
+        <label class="form-label m-0" for='id_password'>Password:</label>
+        {{form.password}}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_register_confirm_password_container">
+        <label class="form-label =m-0" for='id_confirm_password'>Confirm Password:</label>
+        {{form.confirm_password}}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_register_email_container">
+        <label class="form-label m-0" for='id_email'>Email:</label>
+        {{form.email}}
+        {% for error in form.email.errors %}
+        <span class="text-muted px-0">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_register_first_name_container">
+        <label class="form-label m-0" for='id_first_name'>First Name:</label>
+        {{form.first_name}}
+    </div>
+
+    <div class="form-group justify-content-center align-items-center py-1 px-0"
+        id="id_register_last_name_container">
+        <label class="form-label m-0" for='id_last_name'>Last Name:</label>
+        {{form.last_name}}
+    </div>
+
+    <div class="d-flex text-center justify-content-center align-items-center align-self-stretch py-4 px-0"
+        id="id_register_button_container">
+        <button type="submit form_button" class="btn btn-primary py-2" id="id_register_button"> Submit </button>
+    </div>
+
+    {% csrf_token %}
+
+</form>
+
+{% endblock %}

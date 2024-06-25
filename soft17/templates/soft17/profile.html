@@ -1,0 +1,48 @@
+{% extends "soft17/navigation.html" %}
+{% load static %}
+
+{% block content %} 
+<div class="container card game-card align-items-stretch justify-content-center shadow-lg" id="id_game_content_card">
+    <div class="row" >
+        <div class="col-sm-3 border-end border-gray border-3" id="id_profile_details">
+            <div class="d-flex flex-column align-items-stretch g-0 flex-fill p-1 justify-content-center align-items-center">
+                <div class="p-2" id="id_profile_image">
+                    {% if profileImage %}
+                        <img class="rounded-circle w-100 h-100 mx-auto my-auto" id="id_user_picture" src="{{profileImage}}"/>
+                    {% else %}
+                        <img class="rounded-circle w-100 h-100 mx-auto my-auto" id="id_user_picture" src="{% url 'photo' id %}"/>
+                    {% endif %}
+                </div>
+                <div class="text-white text-center p-2" id="id_profile_name">{{name}} <span>{{wallet_balance}}</span></div>
+                <div class="text-white text-center p-2" id="id_profile_username">{{username}}</div>
+                <div class="text-white text-center p-2" id="id_profile_email">{{email}}</div>
+            </div>
+        </div>
+        <div class="col-sm-9" id="id_profile_update">
+            <form action="profile" method="post" enctype="multipart/form-data">
+                <table>
+                    {% for field in form.visible_fields %}
+                        <tr class="text-white">
+                            <td>{{field.label_tag}}</td>
+                            <td>{{field}}</td>
+                            <td class="error">
+                                {% for error in field.errors %} {{error}} {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <div>
+                    <button
+                        id="id_update_profile_button"
+                        type="submit"
+                    >
+                        Submit
+                    </button>
+                </div>
+                
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

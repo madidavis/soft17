@@ -1,0 +1,25 @@
+{% extends "soft17/navigation.html" %}
+
+{% block content%}
+<div class=" game-card d-flex flex-row justify-content-between align-items-stretch flex-nowrap p-0 bg-primary"
+    id="id_login_page_content">
+    <div class="container d-flex" id="id_login_graphic_container">
+
+    </div>
+
+    <!-- Content -->
+    <div class="d-flex flex-column justify-content-center align-items-stretch flex-nowrap p-5"
+        id="id_login_text_container">
+        <div class="background-gradient text-white rounded d-flex justify-content-center align-items-center py-2 my-2" id="id_login_header_row">
+            <span id="id_page_name">{{page_name}}</span>
+        </div>
+
+        <div class="d-flex text-white background-gradient rounded justify-content-center align-items-center p-2" id="id_login_content_row">
+            {% block content-form %}
+            {% endblock %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

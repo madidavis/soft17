@@ -1,0 +1,185 @@
+/* ====== COLOURS ====== */
+/* --- Raw Value Definitions - Level 0 --- */
+/* Primary Colour Values */
+$primary-0:                 #eeecfe;
+$primary-1:                 #ccc6fb;
+$primary-2:                 #aaa0f8;
+$primary-3:                 #8879f6;
+$primary-4:                 #7766f4;
+$primary-5:                 #6552f3;
+$primary-6:                 #5540f2;
+$primary-7:                 #442df0;
+$primary-8:                 #331aef;
+$primary-9:                 #250fd2;
+$primary-10:                #1f0cac;
+$primary-11:                #180986;
+$primary-12:                #11075f;
+$primary-13:                #0a0439;
+
+/* Secondary Colour Values */
+$secondary-0:                 #ebfffd;
+$secondary-1:                 #c3fef8;
+$secondary-2:                 #86fdf1;
+$secondary-3:                 #4afcea;
+$secondary-4:                 #04f1d9;
+$secondary-5:                 #30dac6;
+$secondary-6:                 #03c9b5;
+$secondary-7:                 #03b5a3;
+$secondary-8:                 #02a191;
+$secondary-9:                 #028d7f;
+$secondary-10:                #02645b;
+$secondary-11:                #013c36;
+
+/* Accent - Pink Colour Values */
+$accent1-0:                 #fcedf5;
+$accent1-1:                 #f7cae1;
+$accent1-2:                 #f2a6ce;
+$accent1-3:                 #e383b9;
+$accent1-4:                 #e867aa;
+$accent1-5:                 #e44e9c;
+$accent1-6:                 #d52a88;
+$accent1-7:                 #c31d73;
+$accent1-8:                 #b11b69;
+$accent1-9:                 #7c1349;
+$accent1-10:                #7c1349;
+$accent1-11:                #590D34;
+
+/* Accent - Violet Colour Values */
+$accent2-0:                 #F6F1F9;
+$accent2-1:                 #E4D5EC;
+$accent2-2:                 #D2B9DF;
+$accent2-3:                 #C09DD2;
+$accent2-4:                 #AE80C6;
+$accent2-5:                 #A572C0;
+$accent2-6:                 #9C64B9;
+$accent2-7:                 #9051B1;
+$accent2-8:                 #7D469B;
+$accent2-9:                 #66397F;
+$accent2-10:                #502C63;
+$accent2-11:                #392046;
+
+/* Cool Toned Neutral Colour Values */
+$cool-neutral-0:                 #f2f2f8;
+$cool-neutral-1:                 #d8d8e9;
+$cool-neutral-2:                 #bdbedb;
+$cool-neutral-3:                 #a3a4cc;
+$cool-neutral-4:                 #898abe;
+$cool-neutral-5:                 #6e70af;
+$cool-neutral-6:                 #57599e;
+$cool-neutral-7:                 #484a84;
+$cool-neutral-8:                 #3a3869;
+$cool-neutral-9:                 #2a2b4c;
+$cool-neutral-10:                 #1d1e35;
+$cool-neutral-11:                #161627;
+
+/* Neutral Colour - Cool GreyValues */
+$neutral-0:                 #f5f7fa;
+$neutral-1:                 #e4e7eb;
+$neutral-2:                 #cbd2d9;
+$neutral-3:                 #9aa5b1;
+$neutral-4:                 #7b8794;
+$neutral-5:                 #616e7c;
+$neutral-6:                 #52606d;
+$neutral-7:                 #3e4c59;
+$neutral-8:                 #323f4b;
+$neutral-9:                 #1f2933;
+$neutral-10:                 #181F25;
+$neutral-11:                #101418;
+
+/* Red/Card Accent Values */
+$red-0:                      #fbefef;
+$red-1:                      #f3cece;
+$red-2:                      #ebadad;
+$red-3:                      #e28d8d;
+$red-4:                      #da6c6c;
+$red-5:                      #D65c5c;
+$red-6:                      #d24b4b;
+$red-7:                      #c43131;
+$red-8:                      #a32929;
+$red-9:                      #832121;
+$red-10:                     #621818;
+$red-11:                     #521414;
+
+
+/* -- Bootstrap Definitions Level 1 --*/
+$primary:                   $primary-5;
+$primary-disable:           $primary-2;
+$primary-hover:             $primary-8;
+
+$secondary:                $secondary-5;
+$secondary-disable:        $secondary-2;
+$secondary-hover:          $secondary-9;
+
+$info:                      $accent1-4;
+$info-disable:              $accent1-2;
+$info-hover:                $accent1-8;
+
+$info-secondary:            $accent2-6;
+$info-secondary-disable:    $accent2-3;
+$info-secondary-hover:      $accent2-9;
+
+$light:                     $cool-neutral-2;
+$light-disable:             $cool-neutral-1;
+$light-hover:               $cool-neutral-3;
+
+$dark:                      $cool-neutral-10;
+$dark-disable:              $cool-neutral-9;
+$dark-hover:                $cool-neutral-11;
+
+$universal-white:           #ffffff;
+$unversal-black:            #000000;
+
+
+/* ====== CARD ASSET VARIABLES ====== */
+$card-red-light:            $red-5;
+$card-red-shadow:           $red-6;
+
+/* ====== BODY VARIABLES ====== */
+/* Theme Settings for <body> element */
+$body-bg:                   $universal-white;
+
+/* ====== LINK VARIABLES ====== */
+/* Theme Settings for <a> element */
+
+
+/* ====== BUTTON VARIABLES ====== */
+/* Theme Settings for <btn> element */
+
+
+/* ====== INPUT VARIABLES ====== */
+/* Theme Settings for <form> element */
+$login-input-border-radius: 50rem;
+
+// Floating Forms
+$form-floating-padding-x: 3rem;
+
+
+
+/* ====== TYPOGRAPHY VARIABLES ====== */
+/* Theme settings for Font, line-height and colour for body text, headings and more */
+// Link to Google fonts 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
+$lato: 'Lato', sans-serif;
+$playfair-display: 'Playfair Display';
+$open-sans: 'Open Sans';
+
+$font-family-base: $lato;
+$font-family-sans-serif: $lato;
+$font-family-serif: $playfair-display;
+
+
+// Display Fonts
+$display-font-family: $playfair-display;
+$display-font-weight: 900;
+$display-header-size: 2.5rem;
+
+// Heading Fonts
+
+
+
+/* ====== NAVBAR VARIABLES ====== */
+/* Theme Settings for <navbar> element */
